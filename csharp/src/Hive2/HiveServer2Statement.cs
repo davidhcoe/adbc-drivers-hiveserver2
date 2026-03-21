@@ -456,16 +456,24 @@ namespace AdbcDrivers.HiveServer2.Hive2
         /// since the backend treats these as exact match queries rather than pattern matches.
         protected virtual async Task<QueryResult> GetCrossReferenceAsForeignTableAsync(CancellationToken cancellationToken = default)
         {
-            IResponse response = await Connection.GetCrossReferenceAsync(
-                null,
-                null,
-                null,
-                CatalogName,
-                SchemaName,
-                TableName,
-                cancellationToken);
-
-            return await GetQueryResult(response, cancellationToken);
+            return await this.TraceActivityAsync(async activity =>
+            {
+                activity?.AddEvent("hive2.statement.get_cross_reference_as_foreign_table.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.table_name", TableName ?? "(none)");
+                IResponse response = await Connection.GetCrossReferenceAsync(
+                    null,
+                    null,
+                    null,
+                    CatalogName,
+                    SchemaName,
+                    TableName,
+                    cancellationToken);
+                QueryResult result = await GetQueryResult(response, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_cross_reference_as_foreign_table.complete");
+                return result;
+            }, ClassName + ".GetCrossReferenceAsForeignTable");
         }
 
         /// <summary>
@@ -475,16 +483,27 @@ namespace AdbcDrivers.HiveServer2.Hive2
         /// </summary>
         protected virtual async Task<QueryResult> GetCrossReferenceAsync(CancellationToken cancellationToken = default)
         {
-            IResponse response = await Connection.GetCrossReferenceAsync(
-                CatalogName,
-                SchemaName,
-                TableName,
-                ForeignCatalogName,
-                ForeignSchemaName,
-                ForeignTableName,
-                cancellationToken);
-
-            return await GetQueryResult(response, cancellationToken);
+            return await this.TraceActivityAsync(async activity =>
+            {
+                activity?.AddEvent("hive2.statement.get_cross_reference.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.table_name", TableName ?? "(none)");
+                activity?.SetTag("hive2.statement.foreign_catalog_name", ForeignCatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.foreign_schema_name", ForeignSchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.foreign_table_name", ForeignTableName ?? "(none)");
+                IResponse response = await Connection.GetCrossReferenceAsync(
+                    CatalogName,
+                    SchemaName,
+                    TableName,
+                    ForeignCatalogName,
+                    ForeignSchemaName,
+                    ForeignTableName,
+                    cancellationToken);
+                QueryResult result = await GetQueryResult(response, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_cross_reference.complete");
+                return result;
+            }, ClassName + ".GetCrossReference");
         }
 
         /// <summary>
@@ -494,75 +513,112 @@ namespace AdbcDrivers.HiveServer2.Hive2
         /// </summary>
         protected virtual async Task<QueryResult> GetPrimaryKeysAsync(CancellationToken cancellationToken = default)
         {
-            IResponse response = await Connection.GetPrimaryKeysAsync(
-                CatalogName,
-                SchemaName,
-                TableName,
-                cancellationToken);
-
-            return await GetQueryResult(response, cancellationToken);
+            return await this.TraceActivityAsync(async activity =>
+            {
+                activity?.AddEvent("hive2.statement.get_primary_keys.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.table_name", TableName ?? "(none)");
+                IResponse response = await Connection.GetPrimaryKeysAsync(
+                    CatalogName,
+                    SchemaName,
+                    TableName,
+                    cancellationToken);
+                QueryResult result = await GetQueryResult(response, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_primary_keys.complete");
+                return result;
+            }, ClassName + ".GetPrimaryKeys");
         }
 
         protected virtual async Task<QueryResult> GetCatalogsAsync(CancellationToken cancellationToken = default)
         {
-            IResponse response = await Connection.GetCatalogsAsync(cancellationToken);
-
-            return await GetQueryResult(response, cancellationToken);
+            return await this.TraceActivityAsync(async activity =>
+            {
+                activity?.AddEvent("hive2.statement.get_catalogs.start");
+                IResponse response = await Connection.GetCatalogsAsync(cancellationToken);
+                QueryResult result = await GetQueryResult(response, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_catalogs.complete");
+                return result;
+            }, ClassName + ".GetCatalogs");
         }
 
         protected virtual async Task<QueryResult> GetSchemasAsync(CancellationToken cancellationToken = default)
         {
-            IResponse response = await Connection.GetSchemasAsync(
-                EscapePatternWildcardsInName(CatalogName),
-                EscapePatternWildcardsInName(SchemaName),
-                cancellationToken);
-
-            return await GetQueryResult(response, cancellationToken);
+            return await this.TraceActivityAsync(async activity =>
+            {
+                activity?.AddEvent("hive2.statement.get_schemas.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                IResponse response = await Connection.GetSchemasAsync(
+                    EscapePatternWildcardsInName(CatalogName),
+                    EscapePatternWildcardsInName(SchemaName),
+                    cancellationToken);
+                QueryResult result = await GetQueryResult(response, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_schemas.complete");
+                return result;
+            }, ClassName + ".GetSchemas");
         }
 
         protected virtual async Task<QueryResult> GetTablesAsync(CancellationToken cancellationToken = default)
         {
-            List<string>? tableTypesList = this.TableTypes?.Split(',').ToList();
-            IResponse response = await Connection.GetTablesAsync(
-                EscapePatternWildcardsInName(CatalogName),
-                EscapePatternWildcardsInName(SchemaName),
-                EscapePatternWildcardsInName(TableName),
-                tableTypesList,
-                cancellationToken);
-
-            return await GetQueryResult(response, cancellationToken);
+            return await this.TraceActivityAsync(async activity =>
+            {
+                activity?.AddEvent("hive2.statement.get_tables.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.table_name", TableName ?? "(none)");
+                List<string>? tableTypesList = this.TableTypes?.Split(',').ToList();
+                IResponse response = await Connection.GetTablesAsync(
+                    EscapePatternWildcardsInName(CatalogName),
+                    EscapePatternWildcardsInName(SchemaName),
+                    EscapePatternWildcardsInName(TableName),
+                    tableTypesList,
+                    cancellationToken);
+                QueryResult result = await GetQueryResult(response, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_tables.complete");
+                return result;
+            }, ClassName + ".GetTables");
         }
 
         protected virtual async Task<QueryResult> GetColumnsAsync(CancellationToken cancellationToken = default)
         {
-            IResponse response = await Connection.GetColumnsAsync(
-                EscapePatternWildcardsInName(CatalogName),
-                EscapePatternWildcardsInName(SchemaName),
-                EscapePatternWildcardsInName(TableName),
-                EscapePatternWildcardsInName(ColumnName),
-                cancellationToken);
-
-            // For GetColumns, we need to enhance the result with BASE_TYPE_NAME
-            if (!Connection.TryGetDirectResults(response.DirectResults, out TGetResultSetMetadataResp? metadata, out TRowSet? rowSet))
+            return await this.TraceActivityAsync(async activity =>
             {
-                // Poll and fetch results
-                await Connection.PollForResponseAsync(response.OperationHandle!, Connection.Client, PollTimeMilliseconds, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_columns.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.table_name", TableName ?? "(none)");
+                activity?.SetTag("hive2.statement.column_name", ColumnName ?? "(none)");
+                IResponse response = await Connection.GetColumnsAsync(
+                    EscapePatternWildcardsInName(CatalogName),
+                    EscapePatternWildcardsInName(SchemaName),
+                    EscapePatternWildcardsInName(TableName),
+                    EscapePatternWildcardsInName(ColumnName),
+                    cancellationToken);
 
-                // Get metadata
-                metadata = await Connection.GetResultSetMetadataAsync(response.OperationHandle!, Connection.Client, cancellationToken);
+                // For GetColumns, we need to enhance the result with BASE_TYPE_NAME
+                if (!Connection.TryGetDirectResults(response.DirectResults, out TGetResultSetMetadataResp? metadata, out TRowSet? rowSet))
+                {
+                    // Poll and fetch results
+                    await Connection.PollForResponseAsync(response.OperationHandle!, Connection.Client, PollTimeMilliseconds, cancellationToken);
 
-                // Fetch the results
-                rowSet = await Connection.FetchResultsAsync(response.OperationHandle!, BatchSize, cancellationToken);
-            }
+                    // Get metadata
+                    metadata = await Connection.GetResultSetMetadataAsync(response.OperationHandle!, Connection.Client, cancellationToken);
 
-            // Common processing for both paths
-            Schema schema = Connection.SchemaParser.GetArrowSchema(metadata!.Schema, Connection.DataTypeConversion);
-            int columnCount = HiveServer2Reader.GetColumnCount(rowSet);
-            int rowCount = HiveServer2Reader.GetRowCount(rowSet, columnCount);
-            IReadOnlyList<IArrowArray> data = HiveServer2Reader.GetArrowArrayData(rowSet, columnCount, schema, Connection.DataTypeConversion);
+                    // Fetch the results
+                    rowSet = await Connection.FetchResultsAsync(response.OperationHandle!, BatchSize, cancellationToken);
+                }
 
-            // Return the enhanced result with added BASE_TYPE_NAME column
-            return EnhanceGetColumnsResult(schema, data, rowCount, metadata, rowSet);
+                // Common processing for both paths
+                Schema schema = Connection.SchemaParser.GetArrowSchema(metadata!.Schema, Connection.DataTypeConversion);
+                int columnCount = HiveServer2Reader.GetColumnCount(rowSet);
+                int rowCount = HiveServer2Reader.GetRowCount(rowSet, columnCount);
+                IReadOnlyList<IArrowArray> data = HiveServer2Reader.GetArrowArrayData(rowSet, columnCount, schema, Connection.DataTypeConversion);
+
+                // Return the enhanced result with added BASE_TYPE_NAME column
+                activity?.AddEvent("hive2.statement.get_columns.complete");
+                return EnhanceGetColumnsResult(schema, data, rowCount, metadata, rowSet);
+            }, ClassName + ".GetColumns");
         }
 
         private async Task<Schema> GetResultSetSchemaAsync(TOperationHandle operationHandle, TCLIService.IAsync client, CancellationToken cancellationToken = default)
@@ -679,94 +735,109 @@ namespace AdbcDrivers.HiveServer2.Hive2
 
         protected virtual async Task<QueryResult> GetColumnsExtendedAsync(CancellationToken cancellationToken = default)
         {
-            // 1. Get all three results at once
-            var columnsResult = await GetColumnsAsync(cancellationToken);
-            if (columnsResult.Stream == null)
+            return await this.TraceActivityAsync(async activity =>
             {
-                // TODO: Add log or throw
-                return columnsResult;
-            }
+                activity?.AddEvent("hive2.statement.get_columns_extended.start");
+                activity?.SetTag("hive2.statement.catalog_name", CatalogName ?? "(none)");
+                activity?.SetTag("hive2.statement.schema_name", SchemaName ?? "(none)");
+                activity?.SetTag("hive2.statement.table_name", TableName ?? "(none)");
 
-            var pkResult = await GetPrimaryKeysAsync(cancellationToken);
+                // 1. Launch all three independent metadata calls in parallel
+                activity?.AddEvent("hive2.statement.get_columns_extended.launching_parallel_calls");
+                var columnsTask = GetColumnsAsync(cancellationToken);
+                var pkTask = GetPrimaryKeysAsync(cancellationToken);
+                // For FK lookup, we need to pass in the current catalog/schema/table as the foreign table
+                var fkTask = GetCrossReferenceAsForeignTableAsync(cancellationToken);
 
-            // For FK lookup, we need to pass in the current catalog/schema/table as the foreign table
-            var fkResult = await GetCrossReferenceAsForeignTableAsync(cancellationToken);
+                await Task.WhenAll(columnsTask, pkTask, fkTask).ConfigureAwait(false);
+                activity?.AddEvent("hive2.statement.get_columns_extended.parallel_calls_complete");
 
-            // 2. Read all batches into memory
-            List<RecordBatch> columnsBatches;
-            int totalRows;
-            Schema columnsSchema;
-            StringArray? columnNames = null;
-            int colNameIndex = -1;
-
-            // Extract column data
-            using (var stream = columnsResult.Stream)
-            {
-                colNameIndex = stream.Schema.GetFieldIndex("COLUMN_NAME");
-                if (colNameIndex < 0)
+                var columnsResult = columnsTask.Result;
+                if (columnsResult.Stream == null)
                 {
-                    // TODO: Add log or throw
-                    return columnsResult; // Can't match without column names
+                    activity?.AddEvent("hive2.statement.get_columns_extended.columns_stream_null");
+                    activity?.SetTag(SemanticConventions.Db.Response.ReturnedRows, 0);
+                    activity?.AddEvent("hive2.statement.get_columns_extended.complete");
+                    return columnsResult;
                 }
 
-                var batchResult = await ReadAllBatchesAsync(stream, cancellationToken);
-                columnsBatches = batchResult.Batches;
-                columnsSchema = batchResult.Schema;
-                totalRows = batchResult.TotalRows;
+                var pkResult = pkTask.Result;
+                var fkResult = fkTask.Result;
 
-                if (columnsBatches.Count == 0)
+                // 2. Read all batches into memory
+                List<RecordBatch> columnsBatches;
+                int totalRows;
+                Schema columnsSchema;
+                StringArray? columnNames = null;
+                int colNameIndex = -1;
+
+                // Extract column data
+                activity?.AddEvent("hive2.statement.get_columns_extended.reading_column_batches");
+                using (var stream = columnsResult.Stream)
                 {
-                    // Return empty result with complete schema
-                    return CreateEmptyExtendedColumnsResult(columnsSchema);
+                    colNameIndex = stream.Schema.GetFieldIndex("COLUMN_NAME");
+                    if (colNameIndex < 0)
+                    {
+                        activity?.AddEvent("hive2.statement.get_columns_extended.column_name_field_not_found");
+                        activity?.AddEvent("hive2.statement.get_columns_extended.complete");
+                        return columnsResult; // Can't match without column names
+                    }
+
+                    var batchResult = await ReadAllBatchesAsync(stream, cancellationToken);
+                    columnsBatches = batchResult.Batches;
+                    columnsSchema = batchResult.Schema;
+                    totalRows = batchResult.TotalRows;
+
+                    if (columnsBatches.Count == 0)
+                    {
+                        activity?.AddEvent("hive2.statement.get_columns_extended.empty_columns");
+                        activity?.SetTag(SemanticConventions.Db.Response.ReturnedRows, 0);
+                        activity?.AddEvent("hive2.statement.get_columns_extended.complete");
+                        return CreateEmptyExtendedColumnsResult(columnsSchema);
+                    }
+
+                    // Create column names array from all batches using ArrayDataConcatenator.Concatenate
+                    List<ArrayData> columnNameArrayDataList = columnsBatches.Select(batch =>
+                        batch.Column(colNameIndex).Data).ToList();
+                    ArrayData? concatenatedColumnNames = ArrayDataConcatenator.Concatenate(columnNameArrayDataList);
+                    columnNames = (StringArray)ArrowArrayFactory.BuildArray(concatenatedColumnNames!);
                 }
 
-                // Create column names array from all batches using ArrayDataConcatenator.Concatenate
-                List<ArrayData> columnNameArrayDataList = columnsBatches.Select(batch =>
-                    batch.Column(colNameIndex).Data).ToList();
-                ArrayData? concatenatedColumnNames = ArrayDataConcatenator.Concatenate(columnNameArrayDataList);
-                columnNames = (StringArray)ArrowArrayFactory.BuildArray(concatenatedColumnNames!);
-            }
+                activity?.SetTag("hive2.statement.get_columns_extended.batch_count", columnsBatches.Count);
+                activity?.SetTag("hive2.statement.get_columns_extended.total_rows", totalRows);
 
-            // 3. Create combined schema and prepare data
-            var allFields = new List<Field>(columnsSchema.FieldsList);
-            var combinedData = new List<IArrowArray>();
+                // 3. Create combined schema and prepare data
+                var allFields = new List<Field>(columnsSchema.FieldsList);
+                var combinedData = new List<IArrowArray>();
 
-            // 4. Add all columns data by combining all batches
-            for (int colIdx = 0; colIdx < columnsSchema.FieldsList.Count; colIdx++)
-            {
-                if (columnsBatches.Count == 0)
-                    continue;
-
-                var field = columnsSchema.GetFieldByIndex(colIdx);
-
-                // Collect arrays for this column from all batches
-                var columnArrays = new List<IArrowArray>();
-                foreach (var batch in columnsBatches)
+                // 4. Add all columns data by combining all batches
+                for (int colIdx = 0; colIdx < columnsSchema.FieldsList.Count; colIdx++)
                 {
-                    columnArrays.Add(batch.Column(colIdx));
+                    List<ArrayData> arrayDataList = columnsBatches.Select(batch => batch.Column(colIdx).Data).ToList();
+                    ArrayData? concatenatedData = ArrayDataConcatenator.Concatenate(arrayDataList);
+                    combinedData.Add(ArrowArrayFactory.BuildArray(concatenatedData));
                 }
 
-                List<ArrayData> arrayDataList = columnArrays.Select(arr => arr.Data).ToList();
-                ArrayData? concatenatedData = ArrayDataConcatenator.Concatenate(arrayDataList);
-                IArrowArray array = ArrowArrayFactory.BuildArray(concatenatedData);
-                combinedData.Add(array);
-            }
+                // 5. Process PK and FK data using helper methods with selected fields
+                activity?.AddEvent("hive2.statement.get_columns_extended.processing_primary_keys");
+                await ProcessRelationshipDataSafe(pkResult, PrimaryKeyPrefix, "COLUMN_NAME",
+                    PrimaryKeyFields, // Selected PK fields
+                    columnNames, totalRows,
+                    allFields, combinedData, cancellationToken);
 
-            // 5. Process PK and FK data using helper methods with selected fields
-            await ProcessRelationshipDataSafe(pkResult, PrimaryKeyPrefix, "COLUMN_NAME",
-                PrimaryKeyFields, // Selected PK fields
-                columnNames, totalRows,
-                allFields, combinedData, cancellationToken);
+                activity?.AddEvent("hive2.statement.get_columns_extended.processing_foreign_keys");
+                await ProcessRelationshipDataSafe(fkResult, ForeignKeyPrefix, "FKCOLUMN_NAME",
+                    ForeignKeyFields, // Selected FK fields
+                    columnNames, totalRows,
+                    allFields, combinedData, cancellationToken);
 
-            await ProcessRelationshipDataSafe(fkResult, ForeignKeyPrefix, "FKCOLUMN_NAME",
-                ForeignKeyFields, // Selected FK fields
-                columnNames, totalRows,
-                allFields, combinedData, cancellationToken);
+                // 6. Return the combined result
+                var combinedSchema = new Schema(allFields, columnsSchema.Metadata);
 
-            // 6. Return the combined result
-            var combinedSchema = new Schema(allFields, columnsSchema.Metadata);
-
-            return new QueryResult(totalRows, new HiveInfoArrowStream(combinedSchema, combinedData));
+                activity?.SetTag(SemanticConventions.Db.Response.ReturnedRows, totalRows);
+                activity?.AddEvent("hive2.statement.get_columns_extended.complete");
+                return new QueryResult(totalRows, new HiveInfoArrowStream(combinedSchema, combinedData));
+            }, ClassName + ".GetColumnsExtended");
         }
 
         // Helper method to create an empty result with the complete extended columns schema
@@ -853,19 +924,20 @@ namespace AdbcDrivers.HiveServer2.Hive2
             string[] includeFields, StringArray colNames, int rowCount,
             List<Field> allFields, List<IArrowArray> combinedData, CancellationToken cancellationToken)
         {
+            // Capture the schema before the stream is disposed so we can reference
+            // field types safely in later steps.
+            Schema? relationSchema = result.Stream?.Schema;
+
             // STEP 1: Add relationship fields to the output schema
             // Each field name is prefixed (e.g., "PK_" for primary keys, "FK_" for foreign keys)
-            if (result.Stream != null)
+            if (relationSchema != null)
             {
-                var schema = result.Stream.Schema;
                 foreach (var fieldName in includeFields)
                 {
-                    int fieldIndex = schema.GetFieldIndex(fieldName);
-                    IArrowType arrowType = StringType.Default; // fallback
-                    if (fieldIndex >= 0)
-                    {
-                        arrowType = schema.GetFieldByIndex(fieldIndex).DataType;
-                    }
+                    int fieldIndex = relationSchema.GetFieldIndex(fieldName);
+                    IArrowType arrowType = fieldIndex >= 0
+                        ? relationSchema.GetFieldByIndex(fieldIndex).DataType
+                        : (IArrowType)StringType.Default;
                     allFields.Add(new Field(prefix + fieldName, arrowType, true));
                 }
             }
@@ -895,35 +967,33 @@ namespace AdbcDrivers.HiveServer2.Hive2
                     int keyColIndex = stream.Schema.GetFieldIndex(relationColNameField);
                     if (keyColIndex >= 0)
                     {
-                        // STEP 3.1: Process each record batch from the relationship data source
+                        // Map field names to their column indices once (schema is constant across batches)
+                        var fieldIndices = new Dictionary<string, int>();
+                        foreach (var fieldName in includeFields)
+                        {
+                            int index = stream.Schema.GetFieldIndex(fieldName);
+                            if (index >= 0) fieldIndices[fieldName] = index;
+                        }
+
+                        // Process each record batch from the relationship data source
                         while (true)
                         {
                             var batch = await stream.ReadNextRecordBatchAsync(cancellationToken);
                             if (batch == null) break;
 
-                            // STEP 3.2: Map field names to their column indices for quick lookup
-                            Dictionary<string, int> fieldIndices = new Dictionary<string, int>();
-                            foreach (var fieldName in includeFields)
-                            {
-                                int index = stream.Schema.GetFieldIndex(fieldName);
-                                if (index >= 0) fieldIndices[fieldName] = index;
-                            }
+                            // Cast the key column once per batch, not per row
+                            StringArray keyCol = (StringArray)batch.Column(keyColIndex);
 
-                            // STEP 3.3: Process each row in the batch
                             for (int i = 0; i < batch.Length; i++)
                             {
-                                // Get the key column value (e.g., column name this relationship applies to)
-                                StringArray keyCol = (StringArray)batch.Column(keyColIndex);
                                 if (keyCol.IsNull(i)) continue;
 
                                 string keyValue = keyCol.GetString(i);
-
                                 if (string.IsNullOrEmpty(keyValue)) continue;
 
-                                // STEP 3.4: For each included field, extract its value and store in our map
+                                // For each included field, extract its value and store in our map
                                 foreach (var pair in fieldIndices)
                                 {
-                                    // Ensure we have an entry for this field
                                     if (!relationData.TryGetValue(pair.Key, out var fieldData))
                                     {
                                         fieldData = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -938,11 +1008,9 @@ namespace AdbcDrivers.HiveServer2.Hive2
                                     }
                                     else
                                     {
-                                        // Default: treat as string array
                                         var stringArrayFallback = (StringArray)fieldArray;
                                         relationData[pair.Key][keyValue] = stringArrayFallback.GetString(i);
                                     }
-
                                 }
                             }
                         }
@@ -955,11 +1023,11 @@ namespace AdbcDrivers.HiveServer2.Hive2
             {
                 var fieldData = relationData.ContainsKey(fieldName) ? relationData[fieldName] : null;
                 IArrowType arrowType = StringType.Default;
-                if (result.Stream != null)
+                if (relationSchema != null)
                 {
-                    int fieldIndex = result.Stream.Schema.GetFieldIndex(fieldName);
+                    int fieldIndex = relationSchema.GetFieldIndex(fieldName);
                     if (fieldIndex >= 0)
-                        arrowType = result.Stream.Schema.GetFieldByIndex(fieldIndex).DataType;
+                        arrowType = relationSchema.GetFieldByIndex(fieldIndex).DataType;
                 }
 
                 if (arrowType.TypeId == ArrowTypeId.Int32)

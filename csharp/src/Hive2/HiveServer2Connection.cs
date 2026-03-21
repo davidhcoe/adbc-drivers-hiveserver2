@@ -1374,10 +1374,10 @@ namespace AdbcDrivers.HiveServer2.Hive2
             [TStatusCode.ERROR_STATUS] = (status, _) => ThrowErrorResponse(status),
             [TStatusCode.INVALID_HANDLE_STATUS] = (status, _) => ThrowErrorResponse(status),
             [TStatusCode.STILL_EXECUTING_STATUS] = (status, _) => ThrowErrorResponse(status, AdbcStatusCode.InvalidState),
-            [TStatusCode.SUCCESS_STATUS] = (status, activity) => activity?.AddTag(SemanticConventions.Db.Response.StatusCode, status.StatusCode),
+            [TStatusCode.SUCCESS_STATUS] = (status, activity) => activity?.AddTag(SemanticConventions.Db.Response.StatusCode, (int)status.StatusCode),
             [TStatusCode.SUCCESS_WITH_INFO_STATUS] = (status, activity) =>
             {
-                activity?.AddTag(SemanticConventions.Db.Response.StatusCode, status.StatusCode);
+                activity?.AddTag(SemanticConventions.Db.Response.StatusCode, (int)status.StatusCode);
                 activity?.AddTag(SemanticConventions.Db.Response.InfoMessages, string.Join(Environment.NewLine, status.InfoMessages));
             },
         };
