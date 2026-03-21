@@ -616,8 +616,9 @@ namespace AdbcDrivers.HiveServer2.Hive2
                 IReadOnlyList<IArrowArray> data = HiveServer2Reader.GetArrowArrayData(rowSet, columnCount, schema, Connection.DataTypeConversion);
 
                 // Return the enhanced result with added BASE_TYPE_NAME column
+                var enhancedResult = EnhanceGetColumnsResult(schema, data, rowCount, metadata, rowSet);
                 activity?.AddEvent("hive2.statement.get_columns.complete");
-                return EnhanceGetColumnsResult(schema, data, rowCount, metadata, rowSet);
+                return enhancedResult;
             }, ClassName + ".GetColumns");
         }
 
